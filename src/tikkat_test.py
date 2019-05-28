@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -m pytest
 from unittest.mock import patch, MagicMock
-import sandbox as subject
+import tikkat as subject
 from fixture_histobj import hist
 
 def test_generate_final_states():
