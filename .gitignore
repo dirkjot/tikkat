@@ -1,0 +1,5 @@
+.envrc
+*~
+airtablejs/node_modules/
+.venv/
+

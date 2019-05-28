@@ -1,0 +1,11 @@
+{
+    "python.pythonPath": "/home/dpj/repos/tikkat/.venv/bin/python3",
+    "workbench.colorCustomizations": {
+        "titleBar.activeBackground": "#f89b92",
+        "titleBar.inactiveBackground": "#f89b9299",
+        "titleBar.activeForeground": "#15202b",
+        "titleBar.inactiveForeground": "#15202b99"
+    },
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
+}
