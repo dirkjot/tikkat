@@ -1,5 +1,5 @@
 #!/usr/bin/env python3 -m pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, call
 import tikkat as subject
 from fixture_histobj import hist
 
@@ -14,7 +14,7 @@ def test_generate_final_states():
     fakeclient = MagicMock()
     fakeclient.groups_history.return_value = fakehist
 
-    gen = subject.generate_final_states(fakeclient)
+    gen = subject.generate_updates_for_states(fakeclient, subject.final_states, count=100)
     result = list(gen)
     fakeclient.groups_history.assert_called_once()
 
@@ -29,6 +29,34 @@ def test_generate_final_states():
     assert fup.title == 'State'
     assert fup.value == 'Completed'
     assert fup.timestamp == '1558674057.000400'
+
+
+def test_generate_start_states():
+    "use recorded data"
+        
+    assert hist is not None
+
+    # produce these two results in turn:
+    fakehist = MagicMock()        
+    fakehist.get.side_effect = [True, hist]
+    fakeclient = MagicMock()
+    fakeclient.groups_history.return_value = fakehist
+
+    gen = subject.generate_updates_for_states(fakeclient, subject.start_states, count=100)
+    result = list(gen)
+    fakeclient.groups_history.assert_called_once()
+
+    # print(fakehist.get.call_args_list)
+    fakehist.get.assert_any_call('ok')
+    fakehist.get.assert_any_call('messages')
+    assert len(result) == 3
+
+    fup = result[0]
+    assert fup.table == 'tblA4zbHiw2Lqyvzo'
+    assert fup.record == 'rec42jUKrrdzvhZvQ'
+    assert fup.title == 'State'
+    assert fup.value == 'Started'
+    assert fup.timestamp == '1558737972.001000'
 
 
 
@@ -50,9 +78,11 @@ def test_airtable_update():
     
     subject.airtable_update_completion(fake_updategen, fakebase)
 
-    # I think this fails because the dicts are not 'id' equal
-    # fakebase.update.assert_any_call('Rec', {'Completion': '2019-05-24'})
-    # fakebase.update.assert_any_call('Rec', {'Completion', '2019-03-16'})
-    assert fakebase.update.call_args[0][1]['Completion'] == '2019-03-16' 
+    print(fakebase.update.call_args_list)
+    fakebase.update.assert_has_calls([
+        call('Rec', {'Started': '2019-05-24' }),
+        call('Rec', {'Completion': '2019-03-16' }),
+        ], any_order=True)
     assert fakebase.update.call_count == 2
+
 
