@@ -1,0 +1,68 @@
+* Notes on tikkat development
+
+
+
+
+** Auth
+
+- Get API key from my account page
+- Get base id from airtable.com/api (must be logged in), right click to get the url which
+has the base id (starts with APP).
+- All this stored in .envrc (in .gitignore)
+- and backed up to lastpass as '/tikkat-envrc' (secure note)
+
+
+*** TODO change token
+
+using my private one currenlty, and this whole token business is
+deprecated , must be a slack app now.
+
+
+** API 
+is super simple, and very limited.  basically just crud
+https://airtable.com/appG79slE6qPaJ3eV/api/docs#javascript/table:tickets
+
+
+Notable
+- cannot introduce @mention, only remove existing ones.
+- cannot listen for changes, only query
+- links to 'action' table must be updated by reading, adding one and
+  writing back, otherwise you'll replace all old ones with your one
+  new one.
+- cannot change the options of the dropdown
+
+
+
+
+** Airtable does not do change notifications yet.  
+YOu can either query the table, sort by time mod, and then take a few
+latest adn run this on a poll loop.
+OR you can use the slack integration and poll the slack channel
+(darkbots in our case).  This has the advantage that we have to poll
+slack anyway, and we avoid eating into the 5rps rate limit that
+Airtable imposes.
+
+This guy's got it figured out:
+https://medium.com/@yoad/retrieve-latest-changes-from-airtable-api-b473f5d4cdf9
+
+
+Alternatives:
+-
+  https://community.airtable.com/t/knowing-when-there-is-a-change-to-the-record/1518/8
+-
+  https://community.airtable.com/t/notification-when-field-value-changes/15944/3
+
+
+** Parsing the updates in darkbots
+
+each message has attachments, the updates are part of that.
+https://api.slack.com/docs/message-attachments
+
+according to the example, each attachment has a title_link, we can
+parse the table/ record from there.  
+we only want state-> completed messages, but not sure.
+
+
+
+** Links/ topics
+
