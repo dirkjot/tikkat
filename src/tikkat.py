@@ -145,3 +145,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # quick hack to run every few hours
+    # app will crash and restart
+    import time
+    time.sleep(60*60*int(float(os.environ.get("LOOPTIME", 0))))
+    
