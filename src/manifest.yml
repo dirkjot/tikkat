@@ -1,0 +1,7 @@
+---
+applications:
+- name: tikkat
+  memory: 256MB
+  buildpack: python_buildpack
+  command: python tikkat.py
+  

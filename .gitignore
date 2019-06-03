@@ -1,4 +1,7 @@
+# local files with credentials
 .envrc
+.envrc.json
+
 # emacs files
 *~
 \#*#
