@@ -62,9 +62,20 @@ def get_airdetails_from_link(slack_title_link):
     "Given a slack title link, extract table name and record name"
     return slack_title_link.split('/')[3:]
 
-final_states = ('Completed', 'Rejected')
-start_states = ('Started',)
-all_states = [*final_states, *start_states]
+
+state_to_field = { 
+        'Completed': 'Completion', 
+        'Not Us': 'Completion', 
+        'Started': 'Started'}
+all_states = state_to_field.keys()
+
+
+def is_the_right_type_of_message(message):
+    "check for bot messages from our bot, with attachments"
+    return (message['type'] == 'message' and 
+        message.get('subtype') == 'bot_message' and
+        message['bot_id'] == AIRTABLE_BOT_ID and 
+        message.get('attachments') is not None)
 
 
 def generate_updates_for_states(slackclient, states=all_states, count=100, oldest=0):
@@ -87,8 +98,7 @@ def generate_updates_for_states(slackclient, states=all_states, count=100, oldes
     print(f"Retrieved {len(messages)} messages from Slack")
 
     for message in messages:
-        if (message['type'] == 'message' and message.get('subtype') == 'bot_message' and
-                message['bot_id'] == AIRTABLE_BOT_ID and message.get('attachments') is not None):
+        if (is_the_right_type_of_message(message)):
             for attachment in message['attachments']:
                 for field in attachment['fields']:
                     if field['title'] == 'State' and field['value'] in states:
@@ -106,7 +116,6 @@ def airtable_update_completion(updategen, tickets_table):
     appropriate record in airtable 'tickets_table' with the timestamp 
     in the FieldUpdate
     """
-    state_to_field = { 'Completed': 'Completion', 'Started': 'Started'}
 
     for upd in updategen:
         if upd.table != AIRTABLE_TABLEID:
@@ -130,8 +139,10 @@ def airtable_update_completion(updategen, tickets_table):
                 datestring = datetime.utcfromtimestamp(int(float(upd.timestamp))).strftime('%Y-%m-%d')
                 record = tickets_table.update(upd.record, {airfield: datestring})
                 print(f"SET Airtable {airfield} to {datestring} because {upd}" )
+            else:
+                print(f"Field {airfield} already has a value, ignoring {upd}" )
         else:
-            print(f"State updated to {upd.value} but could not find a matching fieldname")
+            print(f"State updated to {upd.value} but could not find a matching fieldname in 'state_to_field'")
 
 
 def main():

@@ -14,7 +14,7 @@ def test_generate_final_states():
     fakeclient = MagicMock()
     fakeclient.groups_history.return_value = fakehist
 
-    gen = subject.generate_updates_for_states(fakeclient, subject.final_states, count=100)
+    gen = subject.generate_updates_for_states(fakeclient, ("Completed", "Not Us"), count=100)
     result = list(gen)
     fakeclient.groups_history.assert_called_once()
 
@@ -42,7 +42,7 @@ def test_generate_start_states():
     fakeclient = MagicMock()
     fakeclient.groups_history.return_value = fakehist
 
-    gen = subject.generate_updates_for_states(fakeclient, subject.start_states, count=100)
+    gen = subject.generate_updates_for_states(fakeclient, ("Started",), count=100)
     result = list(gen)
     fakeclient.groups_history.assert_called_once()
 
