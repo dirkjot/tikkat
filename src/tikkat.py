@@ -145,7 +145,7 @@ def airtable_update_completion(updategen, tickets_table):
             print(f"State updated to {upd.value} but could not find a matching fieldname in 'state_to_field'")
 
 
-def main():
+def parse_airtable_updates_for_timestamps():
     oldest = (datetime.utcnow() - timedelta(days=2)) # one day back from now
     # TODO this somehow needs to be 2 days to work, not sure why
     print (f"Retrieving messages since {oldest} = {str(oldest.timestamp())}")
@@ -155,7 +155,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parse_airtable_updates_for_timestamps()
     # quick hack to run every few hours
     # app will crash and restart
     import time
