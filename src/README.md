@@ -21,12 +21,21 @@ Future extensions:
 
 ## Running and testing
 
-Code is one Python3, under src.  Everything is in one file for now, but it is not that much.
+Code is one Python3, under src.  Currently, everything is run from the `src` directory; it is my aim to change that. 
+
+To execute:
+```
+cd src
+python3 tikkat.py
+```
+
 
 To run the tests:
 ```
-python3 -m pytest src/
+cd src
+pytest 
+# make sure this uses Python3 pytest OR 
+# python3 -m pytest
 ```
-(you may also be able to run `pytest` but on my system, that starts a python2 version)
 
 

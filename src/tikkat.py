@@ -7,6 +7,8 @@ from requests.exceptions import HTTPError
 from datetime import datetime, timedelta
 
 
+from flask import Flask, jsonify, request
+
 class objectview(object):
     """Convert dict(or parameters of dict) to object view
     See also:
@@ -33,6 +35,7 @@ AIRTABLE_TABLENAME = 'Tickets'
 AIRTABLE_TABLEID = 'tblA4zbHiw2Lqyvzo'
 tickets_table = Airtable(baseid, AIRTABLE_TABLENAME)
 AIRTABLE_BOT_ID = 'BJUEU6P60'
+verification_token=os.environ.get('VERIFICATION_TOKEN')
 
 
 # note that the namespacing has changed as of slackclient 2.0
@@ -154,10 +157,19 @@ def parse_airtable_updates_for_timestamps():
         tickets_table)
 
 
+#########################
+
+
+app = Flask(__name__)
+
+@app.route('/rj75ud/slash', methods=['POST'])
+def slash():
+    if request.form['token'] == verification_token:
+        payload = {'text': 'Meow - Tikkat does not say much yet.'}
+        return jsonify(payload)
+
+
+
 if __name__ == "__main__":
-    parse_airtable_updates_for_timestamps()
-    # quick hack to run every few hours
-    # app will crash and restart
-    import time
-    time.sleep(60*60*int(float(os.environ.get("LOOPTIME", 0))))
+    app.run()
     

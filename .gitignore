@@ -14,3 +14,6 @@ __pycache__/
 **/node_modules/
 # .vscode files, not that settings.json was purposely included in git
 .vscode/
+
+# stuff in my doc directory that is not ready yet
+_other_files/
