@@ -17,3 +17,5 @@ __pycache__/
 
 # stuff in my doc directory that is not ready yet
 _other_files/
+ngrok
+
