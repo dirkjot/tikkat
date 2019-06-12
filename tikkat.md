@@ -9,14 +9,33 @@
 
 ## Auth
 
-- Get Airbase API key from my account page
+- Get Airbase API key from my account page  
+  TODO replace this with cloudopstracker@gmail.com API key
 - Get base id from airtable.com/api (must be logged in), right click to get the url which
 has the base id (starts with APP).
 - All this stored in .envrc (in .gitignore)
 - and backed up to lastpass as '/tikkat-envrc' (secure note)
 
 
-## Slack App token
+## Slack App setup
+
+- Visit https://api.slack.com/apps  to start the process
+- Docs and step by step: https://api.slack.com/slack-apps
+- Added a 'Tikkat' app
+- Add slash command functionality to it, which requires an outgoing webhook.  Set this to tikkat.cfapps.io (where we )
+  push this code), path `/rj75ud/slash`.  I obfuscated the URL just to be sure
+  TODO this should be httpS  but it currently is not.
+- Set the permissions of the app, see screenshots below
+- Retrieve the API token / OAUTH token, which is very long and starts with `xoxb-`.  Store this in `.envrc` and in the 
+  Cloud Foundry environment:
+  ```
+  cf set-env tikkat SLACK_API_TOKEN $SLACK_API_TOKEN
+  ```
+- **TIP** Sync your `.envrc` with the CF environment by running:
+   `awk '/^export/{split($2,kv,"="); print "cf set-env tikkat "kv[1]" "kv[2]}' .envrc | bash`
+- Push this app so the endpoint is live
+
+
 Slack app token for tikkat is in the .envrc  This page is the management page for it.  We should aim
 to have this owned by a bot, service acccount???
 

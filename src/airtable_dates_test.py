@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -m pytest
 from unittest.mock import patch, MagicMock, call
-import tikkat as subject
+import airtable_dates as subject
 from fixture_histobj import hist
 
 def test_generate_final_states():
