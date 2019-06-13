@@ -9,9 +9,12 @@
 # python files
 *.pyc
 __pycache__/
+.pytest_cache/
 .venv/
+
 # node files
 **/node_modules/
+
 # .vscode files, not that settings.json was purposely included in git
 .vscode/
 
