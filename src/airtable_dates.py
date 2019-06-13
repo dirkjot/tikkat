@@ -30,6 +30,7 @@ all_states = state_to_field.keys()
 
 #######################
 
+f"This should be run in Python 3.6 or higher"
 
 class objectview(object):
     """Convert dict(or parameters of dict) to object view

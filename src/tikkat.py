@@ -6,39 +6,17 @@ from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 
 # internal
 import airtable_dates
+from slack_events import app
+from slack_slash import slash
 
 
-verification_token=os.environ.get('VERIFICATION_TOKEN')
+
+#######################
 
 
-app = Flask(__name__)
+f"This should be run in Python 3.6 or higher"
 
 
-@app.route('/rj75ud/hello', methods=['GET'])
-def hello():
-    "Simple slash command"
-    return "Tikkat is up"
-
-@app.route('/rj75ud/slash', methods=['POST'])
-def slash():
-    "Simple slash command"
-    if request.form.get('token'):
-        if request.form['token'] == verification_token:
-            payload = {'text': 'Meow - Tikkat does not say much yet.'}
-            print(jsonify(payload))
-            return jsonify(payload)
-        print("Not token correct")
-        return "Not token correct"
-    else:
-        print("Not request correct")
-        return "Not request correct"
-
-
-@app.route('/rj75ud/oauth', methods=['POST'])
-def oauth():
-    "stub"
-    print("Oauth called")
-    return jsonify({})
 
 
 def setup_scheduler():
@@ -57,5 +35,6 @@ def setup_scheduler():
 
 if __name__ == "__main__":
     setup_scheduler()
+    app.register_blueprint(slash)
     app.run()
 
