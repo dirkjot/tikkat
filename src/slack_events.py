@@ -77,8 +77,34 @@ def mention(event_data):
         pprint(event_data['token'])
         pprint("sign"+ verification_token)
         abort(404)
-    print("app_mention")
-    pprint(event_data['event'])
+    text = event_data['event']['text']
+    print("app_mention - " + text)
+    if 'new ticket' in text:
+        return new_ticket(event_data)
+    elif 'close ticket' in text:
+        return close_ticket(event_data)
+    else:
+        return give_help(event_data)
+
+
+
+def new_ticket(event_data):
+    return jsonify({'text':"""
+    Could you please fill out a short request form https://forms.gle/EbNSJbL66XDqwJCi9. It takes only a minute and it helps us a lot.  Thanks! PWS Platform
+    """})
+
+def close_ticket(event_data):
+    return jsonify({'text':"""Cannot do that yet
+    """})
+
+
+def give_help(event_data):
+    return jsonify({'text':"""Tikkat PWS Platform bot knows these commands
+    - new ticket:  will send you a link to start a ticket
+    - close ticket: will close the ticket linked to this thread (experimental)
+     
+    """})
+
 
 @slack_events_adapter.on("message.channels")
 #@slack_events_adapter.on("message.groups")
