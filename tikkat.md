@@ -46,6 +46,14 @@ https://api.slack.com/apps/AKELREXRS?created=1
 
 
 
+## The Slack APIs
+
+There are too many, and they keep changing:
+- The RTM (real time messaging) API is the old one, harder to use
+- The Events API is what we use, easier, but only for listening.  In this API, listening to channels, direct messages and private groups is done with different calls.  Use this via a `slack_events_adapter`
+- The Conversations API wraps the difference between the three types of messages.  But it is not accessible to Bots right now
+- The Web API is for posting to Slack, ie creating messages.  Basically it is rest-like.  The SlackClient library has `api_call` to wrap this.  https://github.com/slackapi/python-slackclient/blob/master/docs-src/basic_usage.rst
+
 
 ## Airtable API 
 is super simple, and very limited.  basically just crud

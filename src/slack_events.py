@@ -10,6 +10,8 @@ See
 
 from flask import Flask, abort, request, jsonify
 from slackeventsapi import SlackEventAdapter
+import slack
+
 import os
 from pprint import pprint
 import logging
@@ -18,10 +20,20 @@ from time import strftime
 
 verification_token = os.environ.get('VERIFICATION_TOKEN')
 
+
 # This `app` represents your existing Flask app
 app = Flask(__name__)
 logger = logging.getLogger('slack_event')
 logger.setLevel(logging.INFO)
+
+# Bind the Events API route to your existing Flask app by passing the server
+# instance as the last param, or with `server=app`.
+# Wart: you have to bind this to /slack/events, or stuff won't work
+# Maybe: I did not try if you can bind the slack adapter to a blueprint
+slack_events_adapter = SlackEventAdapter(os.environ.get('SLACK_SIGNING_SECRET'), "/slack/events", app)
+
+slackclient = slack.WebClient(token=os.environ.get('SLACK_TOKEN'))
+
 
 # An example of one of your Flask app's routes
 @app.route("/hello")
@@ -36,19 +48,13 @@ def after_request(response):
         request.scheme, request.full_path, request.data, response.status)
     return response
 
-@app.errorhandler(Exception)
-def exceptions(e):
-    tb = traceback.format_exc()
-    timestamp = strftime('[%Y-%b-%d %H:%M]')
-    logger.error('%s %s %s %s %s 5xx INTERNAL SERVER ERROR\n%s', timestamp, request.remote_addr, request.method, request.scheme, request.full_path, tb)
-    abort(500)
+# @app.errorhandler(Exception)
+# def exceptions(e):
+#     tb = traceback.format_exc()
+#     timestamp = strftime('[%Y-%b-%d %H:%M]')
+#     logger.error('%s %s %s %s %s 5xx INTERNAL SERVER ERROR\n%s', timestamp, request.remote_addr, request.method, request.scheme, request.full_path, tb)
+#     abort(500)
 
-
-# Bind the Events API route to your existing Flask app by passing the server
-# instance as the last param, or with `server=app`.
-# Wart: you have to bind this to /slack/events, or stuff won't work
-# Maybe: I did not try if you can bind the slack adapter to a blueprint
-slack_events_adapter = SlackEventAdapter(os.environ.get('SLACK_SIGNING_SECRET'), "/slack/events", app)
 
 
 # Create an event listener for "reaction_added" events and print the emoji name
@@ -61,49 +67,84 @@ def reaction_added(event_data):
 def mention(event_data):
     """
 
-    Example event_data.event:
-       {'channel': 'CKHQ6FAMS',
-        'client_msg_id': 'acc0596d-b12f-4601-8c70-7f4e02e1c7d9',
-        'event_ts': '1560438906.001300',
-        'parent_user_id': 'U0AB10953',
-        'text': '<@UKHHR1BK2> thread',
-        'thread_ts': '1560438884.001000',
-        'ts': '1560438906.001300',
-        'type': 'app_mention',
-        'user': 'U0AB10953'}
 
     """
-    if (event_data['token'] != verification_token):
-        pprint(event_data['token'])
-        pprint("sign"+ verification_token)
-        abort(404)
-    text = event_data['event']['text']
-    print("app_mention - " + text)
-    if 'new ticket' in text:
-        return new_ticket(event_data)
-    elif 'close ticket' in text:
-        return close_ticket(event_data)
-    else:
-        return give_help(event_data)
+    ensure_correct_token(event_data)
+    dispatch = { 
+        new_ticket: ['new ticket', 'start ticket'],
+        close_ticket: ['close ticket'] }
+
+    text = event_data['event']['text'].lower()
+
+    for handler, fragments in dispatch.items():
+        for fragment in fragments:
+            if fragment in text:
+                handler(event_data)
+                return
+    give_help(event_data)
+
 
 
 
 def new_ticket(event_data):
-    return jsonify({'text':"""
-    Could you please fill out a short request form https://forms.gle/EbNSJbL66XDqwJCi9. It takes only a minute and it helps us a lot.  Thanks! PWS Platform
-    """})
+    print("Return new ticket")
+    options={}
+    if event_data['event'].get('thread_ts') is None:
+        # message was made in main channel
+        formlink = "https://forms.gle/EbNSJbL66XDqwJCi9"
+        text = (
+            f"Could you please fill out a short request form {formlink}. "
+            f"It takes only a minute and it helps us a lot.\n"
+            f"Thanks! _PWS Platform_")
+    else:
+        # message in thread, use prefilled link:
+        channel = event_data['event']['channel']
+        pthread = 'p' + event_data['event']['thread_ts'].replace('.', '')
+        formlink = f"https://docs.google.com/forms/d/e/1FAIpQLSfEpoWK3G1c7vOjkRK6HCOpmxn-QFVv6n2I3UFVY5OMBtTaAg/viewform?usp=pp_url&entry.43286154=https://pivotal.slack.com/archives/{channel}/{pthread}"
+        text = (
+            f"Could you please fill out a short request form? "
+            f"It takes only a minute and it helps us a lot. \n"
+            f"Thanks! _PWS Platform_ \n{formlink}")
+        options['thread_ts'] = event_data['event']['thread_ts']
+    slackclient.chat_postMessage(
+        channel=event_data['event']['channel'],
+        text=text, 
+        **options)
+
 
 def close_ticket(event_data):
-    return jsonify({'text':"""Cannot do that yet
-    """})
+    print("Return close ticket")
+    options = {}
+    if event_data['event'].get('thread_ts'):
+        options['thread_ts'] = event_data['event']['thread_ts']
+    slackclient.chat_postMessage(
+        channel=event_data['event']['channel'],
+        text=("We have now closed this ticket, but feel free to reopen it "
+            "by calling the interrupt pair (`@interrupt`) or by opening a "
+            "new ticket.\nThanks! _PWS Platform_"),
+        **options)
 
 
 def give_help(event_data):
-    return jsonify({'text':"""Tikkat PWS Platform bot knows these commands
-    - new ticket:  will send you a link to start a ticket
-    - close ticket: will close the ticket linked to this thread (experimental)
-     
-    """})
+    print("Help given")
+    options = {}
+    if event_data['event'].get('thread_ts'):
+        options['thread_ts'] = event_data['event']['thread_ts']
+    slackclient.chat_postEphemeral(
+        channel=event_data['event']['channel'],
+        text=("Tikkat PWS Platform bot knows these commands:\n"
+            " - `new ticket`:  will send you a link to start a ticket\n"
+            " - `close ticket`: will close the ticket linked to this thread (experimental)\n"),
+        user=event_data['event']['user'],
+        **options)
+
+
+def ensure_correct_token(event_data):
+    "Check the token and 404 if incorrect"
+    if (event_data['token'] != verification_token):
+        pprint(event_data['token'])
+        pprint("Token was ^^,  should have been "+ verification_token)
+        abort(404)
 
 
 @slack_events_adapter.on("message.channels")
