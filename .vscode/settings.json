@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/home/dpj/repos/tikkat/.venv/bin/python3",
+    "python.pythonPath": ".venv/bin/python",
     "workbench.colorCustomizations": {
         "titleBar.activeBackground": "#f89b92",
         "titleBar.inactiveBackground": "#f89b9299",

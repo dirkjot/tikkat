@@ -5,11 +5,11 @@ from fixture_histobj import hist
 
 def test_generate_final_states():
     "use recorded data"
-        
+
     assert hist is not None
 
     # produce these two results in turn:
-    fakehist = MagicMock()        
+    fakehist = MagicMock()
     fakehist.get.side_effect = [True, hist]
     fakeclient = MagicMock()
     fakeclient.groups_history.return_value = fakehist
@@ -24,20 +24,20 @@ def test_generate_final_states():
     assert len(result) == 4
 
     fup = result[0]
-    assert fup.table == 'tblPRjVTMA11WifRn'
+    assert fup.table == 'tblA4zbHiw2Lqyvzo'
     assert fup.record == 'recwr0jJXrmUqvNw5'
     assert fup.title == 'State'
-    assert fup.value == 'Completed'
+    assert fup.newvalue == 'Completed'
     assert fup.timestamp == '1558674057.000400'
 
 
 def test_generate_start_states():
     "use recorded data"
-        
+
     assert hist is not None
 
     # produce these two results in turn:
-    fakehist = MagicMock()        
+    fakehist = MagicMock()
     fakehist.get.side_effect = [True, hist]
     fakeclient = MagicMock()
     fakeclient.groups_history.return_value = fakehist
@@ -55,13 +55,13 @@ def test_generate_start_states():
     assert fup.table == 'tblA4zbHiw2Lqyvzo'
     assert fup.record == 'rec42jUKrrdzvhZvQ'
     assert fup.title == 'State'
-    assert fup.value == 'Started'
+    assert fup.newvalue == 'Started'
     assert fup.timestamp == '1558737972.001000'
 
 
 
 
-def test_airtable_update():
+def test_airtable_update_completion():
     ""
     fake_updategen=[
         subject.FieldUpdate('State', 'Started', 'tblA4zbHiw2Lqyvzo', 'Rec', 1558737972),
@@ -75,7 +75,7 @@ def test_airtable_update():
         {'id': 'Rec', 'fields': {'State': 'Completed'}},
         {'id': 'Rec', 'fields': {'State': 'Completed', 'Completion': '2019'}},
         ]
-    
+
     subject.airtable_update_completion(fake_updategen, fakebase)
 
     print(fakebase.update.call_args_list)

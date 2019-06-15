@@ -6,7 +6,7 @@ from datetime import datetime
 from requests.exceptions import HTTPError
 from datetime import datetime, timedelta
 
-
+f"This should be run in Python 3.6 or higher"
 
 
 baseid = os.environ.get('AIRTABLE_BASE')
@@ -30,7 +30,6 @@ all_states = state_to_field.keys()
 
 #######################
 
-f"This should be run in Python 3.6 or higher"
 
 class objectview(object):
     """Convert dict(or parameters of dict) to object view
@@ -49,20 +48,56 @@ class objectview(object):
         d = dict(*args, **kwargs)
         self.__dict__ = d
 
+#####################
+# Generic Airtable updates
 
+class AirtableChangeException(Exception):
+    pass
+
+class AirtableChangeRequest(object):
+    "Request to change a column from oldvalue to newvalue for a recordId"
+
+    def __init__(self, recordId, column, oldvalue, newvalue):
+        self.column = column
+        self.oldvalue = oldvalue
+        self.newvalue = newvalue
+        self.recordId = recordId
+
+    def __str__(self):
+        return f"[AirtableChangeRequest col {self.column} from {self.oldvalue} to {self.newvalue} for {self.recordId}]"
+
+    def run(self):
+        "Make the update"
+        try:
+            record = tickets_table.get(self.recordId)
+        except HTTPError:
+            raise AirtableChangeException(f"Record with state changes ignored, as record not found: {self.recordId}")
+        assert record['id'] == self.recordId
+        if record['fields'].get(self.column) != self.oldvalue:
+            raise AirtableChangeException(f"Record with state changes ignored, as old value for record does not match: {self.recordId}"
+                    f"col {self.column} should be {self.oldvalue} was {record['fields'].get(self.column)}")
+        tickets_table.update(self.recordId, {self.column: self.newvalue})
+
+
+#######################
+# Completion and Started timestamp updates
+# This has some overlap with the generic case above
 
 
 class FieldUpdate(object):
-    title = value = table = record = timestamp = None
-    def __init__(self, title, value, table, record, timestamp):
+    """
+    Record to hold state changes so that we can update Completion/Started fields
+    """
+    title = newvalue = table = record = timestamp = None
+    def __init__(self, title, newvalue, table, record, timestamp):
         self.title = title
-        self.value = value
+        self.newvalue = newvalue
         self.table = table
         self.record = record
         self.timestamp = timestamp
 
     def __str__(self):
-        return f"Found {self.title} changed to {self.value} for record {self.record} in {self.table} at ts {self.timestamp}"
+        return f"Found {self.title} changed to {self.newvalue} for record {self.record} in {self.table} at ts {self.timestamp}"
 
 
 def get_airdetails_from_link(slack_title_link):
@@ -105,9 +140,12 @@ def generate_updates_for_states(slackclient, states=all_states, count=100, oldes
                     if field['title'] == 'State' and field['value'] in states:
                         # state was updated
                         table, record = get_airdetails_from_link(attachment['title_link'])
-                        fup = FieldUpdate(
-                            field['title'], field['value'], table, record, message['ts'])
-                        yield(fup)
+                        if False  or table != AIRTABLE_TABLEID:
+                            print(f"Ignoring updates to other table {table}")
+                        else:
+                            fup = FieldUpdate(
+                                field['title'], field['value'], table, record, message['ts'])
+                            yield(fup)
 
 
 
@@ -119,11 +157,6 @@ def airtable_update_completion(updategen, tickets_table):
     """
 
     for upd in updategen:
-        if upd.table != AIRTABLE_TABLEID:
-            print(f"Ignoring updates to other table {upd.table}")
-            continue
-        assert upd.title == 'State'
-
         try:
             record = tickets_table.get(upd.record)
         except HTTPError:
@@ -131,9 +164,9 @@ def airtable_update_completion(updategen, tickets_table):
             continue
 
         assert record['id'] == upd.record
-        airfield = state_to_field.get(upd.value)
-        if record['fields'].get(upd.title) != upd.value:
-            print(f"Warning update {upd.record} column {airfield}  even though {upd.title} is now {record['fields'].get(upd.title)}, not {upd.value} ")
+        airfield = state_to_field.get(upd.newvalue)
+        if record['fields'].get(upd.title) != upd.newvalue:
+            print(f"Warning update {upd.record} column {airfield}  even though {upd.title} is now {record['fields'].get(upd.title)}, not {upd.newvalue} ")
 
         if airfield:
             if record['fields'].get(airfield) is None:
@@ -143,7 +176,7 @@ def airtable_update_completion(updategen, tickets_table):
             else:
                 print(f"Field {airfield} already has a value, ignoring {upd}" )
         else:
-            print(f"Found State was changed to {upd.value} but could not find a matching fieldname in 'state_to_field'")
+            print(f"Found State was changed to {upd.newvalue} but could not find a matching fieldname in 'state_to_field'")
 
 
 def parse_airtable_updates_for_timestamps():
