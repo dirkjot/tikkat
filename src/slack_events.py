@@ -1,7 +1,7 @@
 """
-Respond to slack events.  This is the 2019 way to listen to conversations and respond when we are called. 
+Respond to slack events.  This is the 2019 way to listen to conversations and respond when we are called.
 
-See 
+See
 - Events API docs: https://api.slack.com/events-api
 - Python API : https://github.com/slackapi/python-slack-events-api
 - Challenge request: https://api.slack.com/events/url_verification
@@ -11,6 +11,7 @@ See
 from flask import Flask, abort, request, jsonify
 from slackeventsapi import SlackEventAdapter
 import slack
+import airtable_dates
 
 import os
 from pprint import pprint
@@ -44,7 +45,7 @@ def hello():
 @app.after_request
 def after_request(response):
     timestamp = strftime('[%Y-%b-%d %H:%M]')
-    logger.error('FlaskLog %s %s %s %s %s %s', timestamp, request.method, 
+    logger.error('FlaskLog %s %s %s %s %s %s', timestamp, request.method,
         request.scheme, request.full_path, request.data, response.status)
     return response
 
@@ -58,10 +59,10 @@ def after_request(response):
 
 
 # Create an event listener for "reaction_added" events and print the emoji name
-@slack_events_adapter.on("reaction_added")
-def reaction_added(event_data):
-  emoji = event_data["event"]["reaction"]
-  print(emoji)
+# @slack_events_adapter.on("reaction_added")
+# def reaction_added(event_data):
+#   emoji = event_data["event"]["reaction"]
+#   print(emoji)
 
 @slack_events_adapter.on("app_mention")
 def mention(event_data):
@@ -70,7 +71,7 @@ def mention(event_data):
 
     """
     ensure_correct_token(event_data)
-    dispatch = { 
+    dispatch = {
         new_ticket: ['new ticket', 'start ticket'],
         close_ticket: ['close ticket'] }
 
@@ -84,6 +85,13 @@ def mention(event_data):
     give_help(event_data)
 
 
+def makeThreadUrl(event_data):
+    "Given event data, return a valid URL into the thread"
+    # TODO add global for slack URL
+    channel = event_data['event']['channel']
+    pthread = 'p' + event_data['event']['thread_ts'].replace('.', '')
+    threadurl = f"https://pivotal.slack.com/archives/{channel}/{pthread}"
+    return threadurl
 
 
 def new_ticket(event_data):
@@ -98,9 +106,8 @@ def new_ticket(event_data):
             f"Thanks! _PWS Platform_")
     else:
         # message in thread, use prefilled link:
-        channel = event_data['event']['channel']
-        pthread = 'p' + event_data['event']['thread_ts'].replace('.', '')
-        formlink = f"https://docs.google.com/forms/d/e/1FAIpQLSfEpoWK3G1c7vOjkRK6HCOpmxn-QFVv6n2I3UFVY5OMBtTaAg/viewform?usp=pp_url&entry.43286154=https://pivotal.slack.com/archives/{channel}/{pthread}"
+        threadurl = makeThreadUrl(event_data)
+        formlink = f"https://docs.google.com/forms/d/e/1FAIpQLSfEpoWK3G1c7vOjkRK6HCOpmxn-QFVv6n2I3UFVY5OMBtTaAg/viewform?usp=pp_url&entry.43286154={threadurl}"
         text = (
             f"Could you please fill out a short request form? "
             f"It takes only a minute and it helps us a lot. \n"
@@ -108,22 +115,47 @@ def new_ticket(event_data):
         options['thread_ts'] = event_data['event']['thread_ts']
     slackclient.chat_postMessage(
         channel=event_data['event']['channel'],
-        text=text, 
+        text=text,
+        **options)
+
+
+def close_ticket_in_thread(event_data):
+    "Close airtable ticket that was opened in a thread"
+    # TODO refactor this with our eventing system:
+    threadurl = makeThreadUrl(event_data)
+    recordContentsList = airtable_dates.findAirtableRecordFromSlackThread(threadurl)
+    if len(recordContentsList) == 1:
+        recordContents = recordContentsList[0]
+        recordId = recordContents['id']
+        oldvalue = recordContents['fields'].get('State')
+        change = airtable_dates.AirtableChangeRequest(recordId, 'State', oldvalue, 'Completed')
+        change.run()
+        msg = ("We have now closed this ticket, but feel free to reopen it "
+            "by calling the interrupt pair (`@interrupt`) or by opening a "
+            "new ticket.\nThanks! _PWS Platform_")
+    else:
+        print(f"Expected 1 record to match, found {len(recordContentsList)} for url {threadurl}")
+        msg = f"I could not find a unique ticket matching this thread. Help is on the way.  @interrupt "
+    options = {}
+    options['thread_ts'] = event_data['event']['thread_ts']
+    slackclient.chat_postMessage(
+        channel=event_data['event']['channel'],
+        text=msg,
         **options)
 
 
 def close_ticket(event_data):
     print("Return close ticket")
-    options = {}
     if event_data['event'].get('thread_ts'):
-        options['thread_ts'] = event_data['event']['thread_ts']
-    slackclient.chat_postMessage(
-        channel=event_data['event']['channel'],
-        text=("We have now closed this ticket, but feel free to reopen it "
-            "by calling the interrupt pair (`@interrupt`) or by opening a "
-            "new ticket.\nThanks! _PWS Platform_"),
-        **options)
-
+        close_ticket_in_thread(event_data)
+    else:
+        # close was called in main channel
+        slackclient.chat_postEphemeral(
+            channel=event_data['event']['channel'],
+            text=("I'm sorry but I can only close tickets from the thread that they were registered to.  "
+                "Feel free to call the the interrupt pair (`@interrupt`) to help with this."
+                "\nThanks! _PWS Platform_"),
+            user=event_data['event']['user'])
 
 def give_help(event_data):
     print("Help given")
