@@ -166,7 +166,7 @@ def give_help(event_data):
         channel=event_data['event']['channel'],
         text=("Tikkat PWS Platform bot knows these commands:\n"
             " - `new ticket`:  will send you a link to start a ticket\n"
-            " - `close ticket`: will close the ticket linked to this thread (experimental)\n"),
+            " - `close ticket`: will close the ticket linked to this thread\n"),
         user=event_data['event']['user'],
         **options)
 
@@ -198,4 +198,4 @@ def message_channels(event_data):
 
 
 if __name__ == "__main__":
-  app.run(port=5000)
+  app.run(host='0.0.0.0', port=9099)
