@@ -4,13 +4,36 @@
 
 # Development notes
 
+You can only run it locally if you have .envrc set up, see below for instructions. 
+
+Tikkat requires Python3.6 or higher.  We use a virtual environment to fix the Python version and the 
+packages we use (similar to package.json).  
+
+For a new installation:
+```
+# create a virtual python environment in the .venv/
+  python3 -m venv .venv  
+# use the new python (you will have to repeat this every time you create a new shell )
+  source .venv/bin/activate
+# double check
+  type pip # should return something ending in .venv/bin/pip
+# install the packages we need
+  pip install -r src/requirements.txt  
+  
+# test it
+  cd src
+  python tikkat.py
+
+# when you are moving on to other work, close the shell or
+# switch back to normal python
+  deactivate
+```
 
 
 
 ## Auth
 
-- Get Airbase API key from my account page  
-  TODO replace this with cloudopstracker@gmail.com API key
+- Get Airbase API key from cloudopstracker@gmail.com  page  
 - Get base id from airtable.com/api (must be logged in), right click to get the url which
 has the base id (starts with APP).
 - All this stored in .envrc (in .gitignore)
@@ -99,9 +122,15 @@ simply check for changing of the State field
 
 ## Using it on Cloud Foundry
 
-in .envrc.json are the variable setttings that cf needs, they reflect the exports in .envrc.  Open the settings tab of the 
-app in app manager and bulk/json edit to paste all of them in at once.  I'm sure there is a command line for that too.
+in `src.envrc` are the variable setttings that cf needs.  This file is generated from a lastpass entry and it can be used
+to set the CF env variables:
+```
+lpass show  'Shared-Cloud Ops/tikkat-envrc' --notes > src/.envrc
+awk '/^export/{split($2,kv,"="); print "cf set-env tikkat "kv[1]" "kv[2]}' src/.envrc | bash
+```
 
+
+Then bring up tikkat on CF:
 ```
 cd src 
 cf push -f manifest.yml 
