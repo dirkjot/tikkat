@@ -22,7 +22,7 @@ def test_close_ticket_in_thread():
                   'token': '123'}
 
     fake_findAirtableRecordFromSlackThread = MagicMock()
-    subject.airtable_dates.findAirtableRecordFromSlackThread = fake_findAirtableRecordFromSlackThread
+    subject.airtable_wrapper.findAirtableRecordFromSlackThread = fake_findAirtableRecordFromSlackThread
     fake_findAirtableRecordFromSlackThread.return_value = \
         [{'id': 'recLJBBNTJhrC05a4',
           'fields': {'TicketName': 'Kevin Kelani',
@@ -33,7 +33,7 @@ def test_close_ticket_in_thread():
                      'Created Time': '2019-05-20T23:07:06.000Z'},
           'createdTime': '2019-05-20T23:07:06.000Z'}]
     changereq = MagicMock()
-    subject.airtable_dates.AirtableChangeRequest = changereq
+    subject.airtable_wrapper.AirtableChangeRequest = changereq
     changereq.return_value = changereq
     subject.slackclient.chat_postMessage = MagicMock()
 
@@ -44,16 +44,27 @@ def test_close_ticket_in_thread():
     changereq.run.assert_called_once_with()
     subject.slackclient.chat_postMessage.assert_called_once()
 
-    ## test with zero matching records
+
+def test_close_ticket_in_thread_no_match():
+    "this is a pretty horrible test but hard to change that in this architecture"
+    event_data = {'event': {'channel': 'CKHQ6FAMS',
+                            'text': '<@UKHHR1BK2> thread',
+                            'thread_ts': '1560438884.001000',
+                            'ts': '1560438906.001300',
+                            'user': 'U0AB10953'},
+                  'token': '123'}
+
+    fake_findAirtableRecordFromSlackThread = MagicMock()
+    subject.airtable_wrapper.findAirtableRecordFromSlackThread = fake_findAirtableRecordFromSlackThread
     fake_findAirtableRecordFromSlackThread.return_value = []
-    fake_findAirtableRecordFromSlackThread.reset_mock()
-    changereq.run.reset_mock()
-    subject.slackclient.chat_postMessage.reset_mock()
+    changereq = MagicMock()
+    subject.airtable_wrapper.AirtableChangeRequest = changereq
+    changereq.return_value = changereq
+    subject.slackclient.chat_postMessage = MagicMock()
 
     subject.close_ticket_in_thread(event_data)
 
     fake_findAirtableRecordFromSlackThread.assert_called_once_with('https://pivotal.slack.com/archives/CKHQ6FAMS/p1560438884001000')
-    changereq.assert_called_once_with('recLJBBNTJhrC05a4','State','Not Us', 'Completed')
     assert changereq.run.call_count == 0
     subject.slackclient.chat_postMessage.assert_called_once()
 

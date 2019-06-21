@@ -11,7 +11,7 @@ See
 from flask import Flask, abort, request, jsonify
 from slackeventsapi import SlackEventAdapter
 import slack
-import airtable_dates
+import airtable_wrapper
 
 import os
 from pprint import pprint
@@ -123,12 +123,12 @@ def close_ticket_in_thread(event_data):
     "Close airtable ticket that was opened in a thread"
     # TODO refactor this with our eventing system:
     threadurl = makeThreadUrl(event_data)
-    recordContentsList = airtable_dates.findAirtableRecordFromSlackThread(threadurl)
+    recordContentsList = airtable_wrapper.findAirtableRecordFromSlackThread(threadurl)
     if len(recordContentsList) == 1:
         recordContents = recordContentsList[0]
         recordId = recordContents['id']
         oldvalue = recordContents['fields'].get('State')
-        change = airtable_dates.AirtableChangeRequest(recordId, 'State', oldvalue, 'Completed')
+        change = airtable_wrapper.AirtableChangeRequest(recordId, 'State', oldvalue, 'Completed')
         change.run()
         msg = ("We have now closed this ticket, but feel free to reopen it "
             "by calling the interrupt pair (`@interrupt`) or by opening a "
