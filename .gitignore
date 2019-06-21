@@ -1,5 +1,13 @@
 .envrc
+# emacs files
 *~
-airtablejs/node_modules/
+\#*#
+.#*
+# python files
+*.pyc
+__pycache__/
 .venv/
-
+# node files
+**/node_modules/
+# .vscode files, not that settings.json was purposely included in git
+.vscode/
