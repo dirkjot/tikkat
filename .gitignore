@@ -6,6 +6,7 @@
 *~
 \#*#
 .#*
+
 # python files
 *.pyc
 __pycache__/
@@ -22,3 +23,5 @@ __pycache__/
 _other_files/
 ngrok
 
+# MacOS crap
+.DS_Store

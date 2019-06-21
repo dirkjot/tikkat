@@ -47,7 +47,6 @@ has the base id (starts with APP).
 - Added a 'Tikkat' app
 - Add slash command functionality to it, which requires an outgoing webhook.  Set this to tikkat.cfapps.io (where we )
   push this code), path `/rj75ud/slash`.  I obfuscated the URL just to be sure
-  TODO this should be httpS  but it currently is not.
 - Set the permissions of the app, see screenshots below
 - Retrieve the API token / OAUTH token, which is very long and starts with `xoxb-`.  Store this in `.envrc` and in the 
   Cloud Foundry environment:
@@ -59,15 +58,29 @@ has the base id (starts with APP).
 - Push this app so the endpoint is live
 
 
-Slack app token for tikkat is in the .envrc  This page is the management page for it.  We should aim
-to have this owned by a bot, service acccount???
-
-WRONG this was a bot https://pivotal.slack.com/services/632419160354?updated=1
-
-
+### Slack app admin page
 https://api.slack.com/apps/AKELREXRS?created=1
 
 
+### Slack app functionality
+
+- enable incoming web hooks.  We don't need the Webhook URL, the python slack API finds it by itself. 
+- 
+
+### Slack enable events
+
+![image](./docs/slack-event-listening-settings.png)
+
+### Slack app permissions
+
+![image](./docs/Slack-app-permission-list.png)
+
+### Slack app setup for slash commands
+
+Note that this setup is currently not used:  Slack allows its own slash commands (like `/star`) in threads, but user-defined slash commands (like `/tikkat`) 
+cannot be used in threads.  We abandoned the slash command in favor of at-mentioning (like `@tikkat new ticket`). 
+
+![image](./docs/tikkat-slash-command.png)
 
 ## The Slack APIs
 
@@ -84,25 +97,24 @@ https://airtable.com/appG79slE6qPaJ3eV/api/docs#javascript/table:tickets
 
 
 Notable
-- cannot introduce @mention, only remove existing ones.
-- cannot listen for changes, only query
+- cannot introduce Airtable-level @mention, only remove existing ones.
+- cannot listen for changes in Airtable, only query current state
 - links to 'action' table must be updated by reading, adding one and
   writing back, otherwise you'll replace all old ones with your one
   new one.
 - cannot change the options of the dropdown
-
-
+- 5 request per second cap per Base
 
 
 ## Airtable does not do change notifications yet.  
-YOu can either query the table, sort by time mod, and then take a few
-latest adn run this on a poll loop.
+You can either query the table periodically, sort by time mod, and then take a few
+latest and run this on a poll loop.
 OR you can use the slack integration and poll the slack channel
 (darkbots in our case).  This has the advantage that we have to poll
 slack anyway, and we avoid eating into the 5rps rate limit that
 Airtable imposes.
 
-This guy's got it figured out:
+This guy's got it figured out, listening to slack to get Airtable change notifications:
 https://medium.com/@yoad/retrieve-latest-changes-from-airtable-api-b473f5d4cdf9
 
 
@@ -118,6 +130,8 @@ https://api.slack.com/docs/message-attachments
 
 The attachments have fields that reflect the airtable fields (columns) that were updated.  We can
 simply check for changing of the State field
+
+Code in `src/airtable_dates.py`.
 
 
 ## Using it on Cloud Foundry
@@ -138,6 +152,4 @@ cf logs tikkat
 ```
 
 
-
-## Links/ topics
 
