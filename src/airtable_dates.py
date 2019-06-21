@@ -1,3 +1,14 @@
+"""
+This code deals with filling the started and completion columns in AirTable.  It listens to
+a special channel on Slack (#darkbots) where Airtable posts change notificiations.  
+
+This code is using its own Airtable client and not using the Airtable wrapper, because we 
+do not need the extra checks that the wrapper provides. 
+ 
+"""
+
+
+
 import slack
 import os
 from airtable import Airtable
@@ -27,26 +38,6 @@ state_to_field = {
         'Not Us': 'Completion',
         'Started': 'Started'}
 all_states = state_to_field.keys()
-
-#######################
-
-
-class objectview(object):
-    """Convert dict(or parameters of dict) to object view
-    See also:
-        - https://goodcode.io/articles/python-dict-object/
-        - https://stackoverflow.com/questions/1305532/convert-python-dict-to-object
-    >>> o = objectview({'a': 1, 'b': 2})
-    >>> o.a, o.b
-    (1, 2)
-    >>> o = objectview(a=1, b=2)
-    >>> o.a, o.b
-    (1, 2)
-    """
-
-    def __init__(self, *args, **kwargs):
-        d = dict(*args, **kwargs)
-        self.__dict__ = d
 
 
 
