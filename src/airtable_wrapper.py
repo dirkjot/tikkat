@@ -31,6 +31,10 @@ def findAirtableRecordFromSlackThread(slackthread):
     return tickets_table.search('Slack Thread Link', slackthread, max_records=9)
 
 
+def retrieveAirtableView(viewname):
+    return tickets_table.
+
+
 class AirtableChangeRequest(object):
     "Request to change a column from oldvalue to newvalue for a recordId"
 
