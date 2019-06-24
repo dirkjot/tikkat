@@ -1,6 +1,5 @@
 # local files with credentials
-.envrc
-.envrc.json
+.envrc*
 
 # emacs files
 *~

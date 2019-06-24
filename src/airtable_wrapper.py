@@ -9,9 +9,10 @@ from datetime import datetime, timedelta
 f"This should be run in Python 3.6 or higher"
 
 baseid = os.environ.get('AIRTABLE_BASE')
-AIRTABLE_TABLENAME = 'Tickets'
-AIRTABLE_TABLEID = 'tblA4zbHiw2Lqyvzo'
+AIRTABLE_TABLENAME = os.environ.get('AIRTABLE_TICKET_TABLE_NAME', 'Tickets')
+AIRTABLE_TABLEID = os.environ.get('BASE_TICKETS', 'tblA4zbHiw2Lqyvzo')
 tickets_table = Airtable(baseid, AIRTABLE_TABLENAME)
+
 
 
 #####################
@@ -31,8 +32,8 @@ def findAirtableRecordFromSlackThread(slackthread):
     return tickets_table.search('Slack Thread Link', slackthread, max_records=9)
 
 
-def retrieveAirtableView(viewname):
-    return tickets_table.
+#def retrieveAirtableView(viewname):
+#    return tickets_table.
 
 
 class AirtableChangeRequest(object):
