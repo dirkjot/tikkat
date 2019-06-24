@@ -8,6 +8,7 @@ from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 import airtable_dates
 from slack_events import app
 from slack_slash import slash
+from ticket_slo import slo
 
 
 
@@ -36,6 +37,7 @@ def setup_scheduler():
 if __name__ == "__main__":
     setup_scheduler()
     app.register_blueprint(slash)
+    app.register_blueprint(slo)
     port = int(os.getenv("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
 

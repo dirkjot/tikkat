@@ -1,0 +1,78 @@
+<html>
+<head>
+    <title>Tikkat SLO Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        table {
+            border-collapse: collapse;
+            border-spacing: 0px;
+        }
+        table,
+        th,
+        td {
+            padding: 5px;
+            border: 1px solid darkgray;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tikkat SLO Page</h1>
+    <h2>SLO #1: Total Tickets delivered On-Time</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Days</th>
+                <th>Number of Tickets</th>
+                <th>On-Time</th>
+                <th>Target</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>28</td>
+                <td>{{groupsizes.sum()}}</td>
+                <td>{{ontime}}%</td>
+                <td>90%</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>SLO #2: Completion Time by Urgency</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Urgency</th>
+                <th>Number of Tickets</th>
+                <th>On-Time</th>
+                <th>Target Completion</th>
+                <th>Average Completion</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>High</td>
+                <td>{{groupsizes.High}}</td>
+                <td>{{groupmeans.ontime.High}}%</td>
+                <td>1</td>
+                <td>{{groupmeans.DaysTaken.High}}</td>
+            </tr>
+            <tr>
+                <td>Medium</td>
+                <td>{{groupsizes.Medium}}</td>
+                <td>{{groupmeans.ontime.Medium}}%</td>
+                <td>3</td>
+                <td>{{groupmeans.DaysTaken.Medium}}</td>
+            </tr>
+            <tr>
+                <td>Low</td>
+                <td>{{groupsizes.Low}}</td>
+                <td>{{groupmeans.ontime.Low}}%</td>
+                <td>10</td>
+                <td>{{groupmeans.DaysTaken.Low}}</td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>
