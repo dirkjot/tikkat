@@ -55,6 +55,9 @@ has the base id (starts with APP).
   ```
   cf set-env tikkat SLACK_API_TOKEN $SLACK_API_TOKEN
   ```
+- the app also requires a `SLACK_SIGNING_SECRET` which can be found on the main admin page under App Credentials there is a Signing Secret
+  ![Screen Shot 2019-06-26 at 5 39 55 PM](https://user-images.githubusercontent.com/4021445/60224900-69607e00-9839-11e9-9a01-3ae8e6a5981c.png)
+  ![Screen Shot 2019-06-26 at 5 41 26 PM](https://user-images.githubusercontent.com/4021445/60224957-a2005780-9839-11e9-8a31-f75499229bb7.png)
 - **TIP** Sync your `.envrc` with the CF environment by running:
    `awk '/^export/{split($2,kv,"="); print "cf set-env tikkat "kv[1]" "kv[2]}' .envrc | bash`
 - Push this app so the endpoint is live
