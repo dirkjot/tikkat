@@ -48,7 +48,9 @@ has the base id (starts with APP).
 - Add slash command functionality to it, which requires an outgoing webhook.  Set this to tikkat.cfapps.io (where we )
   push this code), path `/rj75ud/slash`.  I obfuscated the URL just to be sure
 - Set the permissions of the app, see screenshots below
-- Retrieve the API token / OAUTH token, which is very long and starts with `xoxb-`.  Store this in `.envrc`, lastpass and in the 
+- Retrieve the API token / OAUTH token, which is very long and starts with `xoxb-`. It can be found under the Permissions section of the app admin page.
+  ![Screen Shot 2019-06-26 at 5 32 46 PM](https://user-images.githubusercontent.com/4021445/60224759-abd58b00-9838-11e9-8fde-d87b07794099.png)
+- Store this in `.envrc`, lastpass and in the 
   Cloud Foundry environment:
   ```
   cf set-env tikkat SLACK_API_TOKEN $SLACK_API_TOKEN
