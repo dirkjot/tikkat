@@ -12,11 +12,9 @@ import slack
 import os
 from airtable import Airtable
 from pprint import pprint
-from datetime import datetime
 from requests.exceptions import HTTPError
 from datetime import datetime, timedelta
 import pandas as pd
-import pytz
 from flask import Blueprint, request, abort, make_response, render_template
 from jinja2 import TemplateNotFound
 
