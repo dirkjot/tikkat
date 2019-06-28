@@ -22,8 +22,8 @@ from jinja2 import TemplateNotFound
 f"This should be run in Python 3.6 or higher"
 
 baseid = os.environ.get('AIRTABLE_BASE')
-AIRTABLE_TABLENAME = os.environ.get('AIRTABLE_TICKET_TABLE_NAME')
-AIRTABLE_TABLEID = os.environ.get('BASE_TICKETS')
+AIRTABLE_TABLENAME = os.environ.get('AIRTABLE_TICKET_TABLE_NAME', 'Tickets')
+AIRTABLE_TABLEID = os.environ.get('BASE_TICKETS', 'tblA4zbHiw2Lqyvzo')
 tickets_table = Airtable(baseid, AIRTABLE_TABLENAME)
 verification_token=os.environ.get('VERIFICATION_TOKEN')
 
@@ -59,7 +59,7 @@ def runstats(da):
     da.Deadline.fillna(da.SoftDeadline, inplace=True)  
     # compute SLO 1, assuming completion happened at start of day,
     # so completion *at* deadline date is passing the SLO
-    da['ontime'] = pd.to_datetime(da.Completion+"T00:00:00.000Z") < pd.to_datetime(da.Deadline) 
+    da['ontime'] = pd.to_datetime(da.Completion, utc=True) < pd.to_datetime(da.Deadline, utc=True) 
     ontime = da.ontime.mean()
 
     # note that groupmeans need a double index (groupmeans['ontime']['High'])
