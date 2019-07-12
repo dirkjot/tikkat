@@ -55,7 +55,8 @@ def getdonedusted():
 def runstats(da):
     "Given donedusted data, compute stats"
     # replace empty values for Deadline with SoftDeadline
-    da.Deadline.fillna(da.SoftDeadline, inplace=True)
+    if not hasattr(da, 'Deadline'):
+        da['Deadline'] = da.SoftDeadline
     # compute SLO 1, assuming completion happened at start of day,
     # so completion *at* deadline date is passing the SLO
     da['ontime'] = pd.to_datetime(da.Completion, utc=True) < pd.to_datetime(da.Deadline, utc=True)
