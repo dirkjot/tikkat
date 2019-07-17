@@ -7,7 +7,6 @@ SLO $2:  The average completion time for High/Medium/Low urgency tickets
 
 """
 
-
 import slack
 import os
 from airtable import Airtable
