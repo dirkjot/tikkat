@@ -48,13 +48,15 @@ def getdonedusted():
     #   'DaysTaken': 0},
     #  'createdTime': '2019-06-04T06:42:20.000Z'}
 
+    for res in rawres:
+        if 'Deadline' not in res:
+            res['fields']['Deadline'] = res.get('fields').get('SoftDeadline')
+
     da = pd.DataFrame([res['fields'] for res in rawres])
     return da
 
 def runstats(da):
     "Given donedusted data, compute stats"
-    # replace empty values for Deadline with SoftDeadline
-    da.Deadline.fillna(da.SoftDeadline, inplace=True)
     # compute SLO 1, assuming completion happened at start of day,
     # so completion *at* deadline date is passing the SLO
     da['ontime'] = pd.to_datetime(da.Completion, utc=True) < pd.to_datetime(da.Deadline, utc=True)
