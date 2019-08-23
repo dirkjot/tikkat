@@ -141,8 +141,7 @@ Code in `src/airtable_dates.py`.
 
 ## Using it on Cloud Foundry
 
-in `src.envrc` are the variable setttings that cf needs.  This file is generated from a lastpass entry and it can be used
-to set the CF env variables:
+in `src.envrc` are the variable settings that cf needs.  This file is generated from a lastpass entry and it can be used to set the CF env variables:
 ```
 lpass show  'Shared-Cloud Ops/tikkat-envrc' --notes > src/.envrc
 awk '/^export/{split($2,kv,"="); print "cf set-env tikkat "kv[1]" "kv[2]}' src/.envrc | bash
